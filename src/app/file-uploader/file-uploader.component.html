@@ -1,0 +1,11 @@
+<div class="main">
+  <div class="container">
+    <div class="input-button" *ngIf="!success && !error">
+      <input #fileInput type="file" [class.hidden]="loading" [attr.disabled]="loading ? '' : null" (change)="onFileInputChange($event)"
+        (dragenter)="onDragEnter()" (dragleave)="onDragLeave()" />
+      <button [class.hidden]="!file || loading" [disabled]="!file || loading" (click)="uploadFile()">Upload</button>
+    </div>
+    <div class="messages" [class.success]="success" [class.error]="error"><span *ngIf="success">SUCCESS</span><span *ngIf="error">ERROR</span></div>
+    <round-progress class="progress-bar " [class.dragging]="isDragging " [current]="progress " [max]="100 "></round-progress>
+  </div>
+</div>

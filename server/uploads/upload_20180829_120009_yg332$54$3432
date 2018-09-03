@@ -1,0 +1,146 @@
+const express = require('express');
+const fs = require('fs');
+const sha256 = require('crypto-js/sha256');
+const multer = require('multer');
+
+const DIR = './uploads';
+
+function returnSuccess(res, msg) {
+  return res.status(200).json(msg);
+}
+
+function returnError(res, msg) {
+  return res.status(422).json(msg);
+}
+
+const app = express();
+
+app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:4200');
+  res.header('Access-Control-Allow-Methods', 'POST');
+  res.header('Access-Control-Max-Age', 1000);
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Origin, Accept, X-Requested-With, X-File-Name, X-File-Size, X-Index, X-Total, X-Hash'
+  );
+  res.header('Access-Control-Allow-Credentials', true);
+  next();
+});
+
+app.get('/api', function(req, res) {
+  res.end('file catcher example');
+});
+
+function filterData(req, file, cb) {
+  if (!req.get('X-File-Name')) {
+    return cb(new Error('File name is missing!'));
+  }
+  if (!req.get('X-File-Size')) {
+    return cb(new Error('File size is missing!'));
+  } else {
+    const size = +req.get('X-File-Size');
+    if (size === 0) {
+      return cb(new Error('Empty file!'));
+    }
+  }
+  if (!req.get('X-Index')) {
+    return cb(new Error('Slice index is missing!'));
+  }
+  if (!req.get('X-Total')) {
+    return cb(new Error('Slices total is missing!'));
+  }
+  if (!req.get('X-Hash')) {
+    return cb(new Error('Hash is missing!'));
+  }
+
+  return cb(null, true);
+}
+
+// const upload = multer({ dest: DIR }).single('piece');
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: function(req, file, cb) {
+      cb(null, DIR);
+    },
+    filename: function(req, file, cb) {
+      const fileName = req.get('X-File-Name');
+      const index = +req.get('X-Index');
+      const total = +req.get('X-Total');
+
+      cb(null, `${fileName}-${index}-${total}`);
+    }
+  }),
+  fileFilter: function(req, file, cb) {
+    return filterData(req, file, cb);
+  }
+}).single('piece');
+
+app.post('/api', function(req, res) {
+  upload(req, res, function(err) {
+    if (err) {
+      return returnError(res, err.message);
+    }
+
+    if (!req.file || !Object.keys(req.file).length) {
+      return returnError(res, 'Uploading failed!');
+    }
+
+    fs.readFile(req.file.path, function(err, data) {
+      if (err) {
+        return returnError(res, 'No temp file!');
+      }
+
+      const fileName = req.get('X-File-Name');
+      const index = +req.get('X-Index');
+      const total = +req.get('X-Total');
+      const hash = req.get('X-Hash');
+
+      let binary = '';
+      const bytes = new Uint8Array(data);
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const hash_tmp = sha256(binary).toString();
+      if (hash !== hash_tmp) {
+        return returnError(res, 'Hash is invalid!');
+      }
+
+      if (index > 0) {
+        const tmpFileOld = `${DIR}/${fileName}-${index - 1}-${total}`;
+        fs.appendFile(tmpFileOld, data, function(err, data) {
+          if (err) {
+            return returnError(res, 'File modifying failed!');
+          }
+          fs.rename(tmpFileOld, req.file.path, function(err) {
+            if (err) {
+              return returnError(res, 'File renaming failed!');
+            }
+            if (index === total - 1) {
+              fs.rename(req.file.path, `${DIR}/${fileName}`, function(err) {
+                if (err) {
+                  return returnError(res, 'File renaming failed!');
+                }
+              });
+            }
+          });
+        });
+      } else {
+        if (index === total - 1) {
+          fs.rename(req.file.path, `${DIR}/${fileName}`, function(err) {
+            if (err) {
+              return returnError(res, 'File renaming failed!');
+            }
+          });
+        }
+      }
+
+      return returnSuccess(res, 'uploaded');
+    });
+  });
+});
+
+var PORT = process.env.PORT || 3000;
+
+app.listen(PORT, function() {
+  console.log('Working on port ' + PORT);
+});

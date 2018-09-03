@@ -1,0 +1,5 @@
+<ul class="uploaded_files" *ngIf="files">
+  <li *ngFor="let file of files">
+    <a (click)="onClick(file.unique_name)">{{file.name}}</a>
+  </li>
+</ul>

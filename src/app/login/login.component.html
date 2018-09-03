@@ -1,0 +1,25 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300">
+
+<div class="login-page">
+  <div class="form">
+    <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="input-container">
+        <input type="text" formControlName="email" placeholder="email" [ngClass]="{ 'error': submitted && LForm.email.errors }" />
+        <div *ngIf="submitted && LForm.email.errors" class="error-message">
+          <div *ngIf="LForm.email.errors"></div>Email is invalid
+        </div>
+      </div>
+      <div class="input-container">
+        <input type="password" formControlName="password" placeholder="password" [ngClass]="{ 'error': submitted && LForm.password.errors }"
+        />
+        <div *ngIf="submitted && LForm.password.errors" class="error-message">
+          <div *ngIf="LForm.password.errors">Password is invalid</div>
+        </div>
+      </div>
+      <button [disabled]="loading" class="btn btn-primary" [ngClass]="{ 'inactive': loading }">Login</button>
+      <img *ngIf="loading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="
+      />
+      <p class="message"><a href="#">Forgot Password?</a></p>
+    </form>
+  </div>
+</div>
